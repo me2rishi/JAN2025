@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<schema attributeFormDefault="unqualified"
+	elementFormDefault="qualified"
+	targetNamespace="http://practice.com/TestSOAApplication/CardValidationSystem/CVSBPEL"
+	xmlns="http://www.w3.org/2001/XMLSchema">
+	<element name="cardReq">
+		<complexType>
+			<sequence>
+				<element name="ccNumber" type="integer"/>
+                                <element name="ccVendor" type="string"/>
+                                
+			</sequence>
+		</complexType>
+	</element>
+	<element name="cardRes">
+		<complexType>
+			<sequence>
+				<element name="ccNumber" type="integer"/>
+                                <element name="ccVendor" type="string"/>
+                                <element name="ccStatus" type="string"/>
+			</sequence>
+		</complexType>
+	</element>
+</schema>
