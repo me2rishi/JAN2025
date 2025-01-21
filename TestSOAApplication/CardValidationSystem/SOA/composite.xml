@@ -11,9 +11,11 @@
            xmlns:orawsp="http://schemas.oracle.com/ws/2006/01/policy"
            xmlns:ui="http://xmlns.oracle.com/soa/designer/"
            xmlns:sca-ext="http://xmlns.oracle.com/sca/1.0-ext">
-  <import namespace="http://practice.com/TestSOAApplication/CardValidationSystem/CVSBPEL" location="WSDLs/CVSBPEL.wsdl"
+  <import namespace="http://practice.com/TestSOAApplication/CardValidationSystem/CVSBPEL"
+          location="oramds:/apps/TestSOAApplication/CardValidationSystem/WSDLs/CVSBPEL.wsdl"
           importType="wsdl"/>
-  <service name="cvsbpel_client_ep" ui:wsdlLocation="WSDLs/CVSBPEL.wsdl">
+  <service name="cvsbpel_client_ep"
+           ui:wsdlLocation="oramds:/apps/TestSOAApplication/CardValidationSystem/WSDLs/CVSBPEL.wsdl">
     <interface.wsdl interface="http://practice.com/TestSOAApplication/CardValidationSystem/CVSBPEL#wsdl.interface(CVSBPEL)"/>
     <binding.ws port="http://practice.com/TestSOAApplication/CardValidationSystem/CVSBPEL#wsdl.endpoint(cvsbpel_client_ep/CVSBPEL_pt)"/>
   </service>
@@ -22,7 +24,8 @@
   <component name="CVSBPEL" version="2.0">
     <implementation.bpel src="BPEL/CVSBPEL.bpel"/>
     <componentType>
-      <service name="cvsbpel_client" ui:wsdlLocation="WSDLs/CVSBPEL.wsdl">
+      <service name="cvsbpel_client"
+               ui:wsdlLocation="oramds:/apps/TestSOAApplication/CardValidationSystem/WSDLs/CVSBPEL.wsdl">
         <interface.wsdl interface="http://practice.com/TestSOAApplication/CardValidationSystem/CVSBPEL#wsdl.interface(CVSBPEL)"/>
       </service>
     </componentType>
