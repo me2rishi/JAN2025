@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<schema attributeFormDefault="unqualified"
+	elementFormDefault="qualified"
+	targetNamespace="http://Practice.com/TestSOAApplication/AirthmeticOperation/AirthmeticBPELProcess"
+	xmlns="http://www.w3.org/2001/XMLSchema">
+	<element name="RequestSchema">
+		<complexType>
+			<sequence>
+				<element name="inputOne" type="integer"/>
+                                <element name="inputTwo" type="integer"/>
+			</sequence>
+		</complexType>
+	</element>
+	<element name="ResponseSchema">
+		<complexType>
+			<sequence>
+				<element name="OperationName" type="string"/>
+                                <element name="Result" type="integer"/>
+			</sequence>
+		</complexType>
+	</element>
+</schema>

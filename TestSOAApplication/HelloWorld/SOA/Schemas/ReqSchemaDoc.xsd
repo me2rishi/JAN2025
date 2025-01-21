@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+            xmlns="http://practice.com/demo/HelloWorld/Request"
+            targetNamespace="http://practice.com/demo/HelloWorld/Request" 
+            elementFormDefault="qualified">
+  <xsd:element name="exampleElement">
+    <xsd:annotation>
+      <xsd:documentation>Request XSD</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  
+  <xsd:element name="request">
+  <xsd:complexType>
+  <xsd:sequence>
+      <xsd:element name="username" type="xsd:string"/>
+  </xsd:sequence>
+  </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

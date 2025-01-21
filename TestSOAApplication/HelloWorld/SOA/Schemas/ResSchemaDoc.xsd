@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<ns1:schema xmlns:ns1="http://www.w3.org/2001/XMLSchema" 
+            xmlns="http://practice.com/demo/HelloWorld/Response"
+            targetNamespace="http://practice.com/demo/HelloWorld/Response"
+            elementFormDefault="qualified">
+  <ns1:element name="exampleElement">
+    <ns1:annotation>
+      <ns1:documentation>Response XSD</ns1:documentation>
+    </ns1:annotation>
+  </ns1:element>
+  <ns1:element name="response">
+    <ns1:complexType>
+      <ns1:sequence>
+        <ns1:element name="wish" type="ns1:string"/>
+      </ns1:sequence>
+    </ns1:complexType>
+  </ns1:element>
+</ns1:schema>
