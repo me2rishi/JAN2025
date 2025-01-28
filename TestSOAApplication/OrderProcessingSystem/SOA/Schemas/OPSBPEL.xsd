@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+        targetNamespace="http://practice.com/TestSOAApplication/OrderProcessingSystem/OPSBPEL"
+        xmlns="http://www.w3.org/2001/XMLSchema">
+  <element name="orderRequest">
+    <complexType>
+      <sequence>
+        <element name="orderID" type="integer"/>
+        <element name="custInfo">
+          <complexType>
+            <sequence>
+              <element name="custID" type="integer"/>
+              <element name="custName" type="string"/>
+            </sequence>
+          </complexType>
+        </element>
+        <element name="cardInfo">
+          <complexType>
+            <sequence>
+              <element name="ccNumber" type="integer"/>
+              <element name="ccVendor" type="string"/>
+            </sequence>
+          </complexType>
+        </element>
+        <element name="lineItem" minOccurs="0" maxOccurs="unbounded">
+          <complexType>
+            <sequence>
+              <element name="ID" type="integer"/>
+              <element name="ProductName" type="string"/>
+              <element name="ProductCost" type="integer"/>
+            </sequence>
+          </complexType>
+        </element>
+      </sequence>
+    </complexType>
+  </element>
+  <element name="orderResponse">
+    <complexType>
+      <sequence>
+        <element name="ord_id" type="integer"/>
+        <element name="ccValidationStatus" type="string"/>
+        <element name="totalCost" type="integer"/>
+        <element name="orderStatus" type="string"/>
+      </sequence>
+    </complexType>
+  </element>
+</schema>

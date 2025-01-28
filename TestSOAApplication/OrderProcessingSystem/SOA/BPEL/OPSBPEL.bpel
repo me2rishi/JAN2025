@@ -1,0 +1,166 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Mon Jan 27 22:09:21 PST 2025
+  Author:  RISHI GARG
+  Type: BPEL 2.0 Process
+  Purpose: Asynchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="OPSBPEL"
+         targetNamespace="http://practice.com/TestSOAApplication/OrderProcessingSystem/OPSBPEL"
+         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:client="http://practice.com/TestSOAApplication/OrderProcessingSystem/OPSBPEL"
+         xmlns:ora="http://schemas.oracle.com/xpath/extension"
+         xmlns:ui="http://xmlns.oracle.com/soa/designer"
+         xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:ns1="http://practice.com/TestSOAApplication/CardValidationSystem/CVSBPEL"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap"
+         xmlns:ns2="http://practice.com/TestSOAApplication/BillingSystem/BillingSystemBPEL">
+
+    <import ui:processWSDL="true" namespace="http://practice.com/TestSOAApplication/OrderProcessingSystem/OPSBPEL" location="../WSDLs/OPSBPEL.wsdl" importType="http://schemas.xmlsoap.org/wsdl/"/>
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        PARTNERLINKS                                                      
+        List of services participating in this BPEL process               
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    --> 
+    <partnerLinks>
+        <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+        <partnerLink name="opsbpel_client" partnerLinkType="client:OPSBPEL" myRole="OPSBPELProvider" partnerRole="OPSBPELRequester"/>
+        <partnerLink name="CVSReference" partnerLinkType="ns1:CVSBPEL" partnerRole="CVSBPELProvider"/>
+        <partnerLink name="BSReference" partnerLinkType="ns2:BillingSystemBPEL" partnerRole="BillingSystemBPELProvider"
+                     myRole="BillingSystemBPELRequester"/>
+    </partnerLinks>
+
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        VARIABLES                                                        
+        List of messages and XML documents used within this BPEL process 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <variables>
+        <!-- Reference to the message passed as input during initiation -->
+        <variable name="inputVariable" messageType="client:OPSBPELRequestMessage"/>
+
+        <!-- Reference to the message that will be sent back to the requester during callback -->
+        <variable name="outputVariable" messageType="client:OPSBPELResponseMessage"/>
+    </variables>
+
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+       ORCHESTRATION LOGIC                                               
+       Set of activities coordinating the flow of messages across the    
+       services integrated within this business process                  
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <sequence name="main">
+        <!-- Receive input from requestor. (Note: This maps to operation defined in OPSBPEL.wsdl) -->
+        <receive name="receiveInput" partnerLink="opsbpel_client" portType="client:OPSBPEL" operation="process" variable="inputVariable" createInstance="yes"/>
+        <assign name="AssignOrderId">
+            <copy>
+                <from>$inputVariable.payload/client:orderID</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:ord_id</to>
+            </copy>
+        </assign>
+        <scope name="Scope_CVS">
+            <variables>
+                <variable name="InvokeCVSInputVariable" messageType="ns1:CVSBPELRequestMessage"/>
+                <variable name="InvokeCVSOutputVariable" messageType="ns1:CVSBPELResponseMessage"/>
+            </variables>
+            <sequence name="Sequence1">
+                <assign name="AssignCVSReqMapping">
+                    <copy>
+                        <from>$inputVariable.payload/client:cardInfo/client:ccNumber</from>
+                        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeCVSInputVariable.payload/ns1:ccNumber</to>
+                    </copy>
+                    <copy>
+                        <from>$inputVariable.payload/client:cardInfo/client:ccVendor</from>
+                        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeCVSInputVariable.payload/ns1:ccVendor</to>
+                    </copy>
+                </assign>
+                <invoke name="InvokeCVS" partnerLink="CVSReference" portType="ns1:CVSBPEL" operation="process"
+                        inputVariable="InvokeCVSInputVariable" outputVariable="InvokeCVSOutputVariable"
+                        bpelx:invokeAsDetail="no"/>
+                <assign name="AssignCVSResMapping">
+                    <copy>
+                        <from>$InvokeCVSOutputVariable.payload/ns1:ccStatus</from>
+                        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:ccValidationStatus</to>
+                    </copy>
+                </assign>
+            </sequence>
+        </scope>
+        <if name="If1">
+            <documentation>
+                <![CDATA[VALID CC]]>
+            </documentation>
+            <condition>$outputVariable.payload/client:ccValidationStatus = "VALID"</condition>
+            <scope name="Scope_BS">
+                <variables>
+                    <variable name="InvokeBSInputVariable" messageType="ns2:BillingSystemBPELRequestMessage"/>
+                    <variable name="BSResponseVariable" messageType="ns2:BillingSystemBPELResponseMessage"/>
+                </variables>
+                <sequence name="Sequence2">
+                    <assign name="Transformation1">
+                        <bpelx:annotation>
+                            <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                        </bpelx:annotation>
+                        <copy>
+                            <from>ora:doXSLTransformForDoc("../Transformations/TransformationBS.xsl", $inputVariable.payload)</from>
+                            <to variable="InvokeBSInputVariable" part="payload"/>
+                        </copy>
+                    </assign>
+                    <invoke name="InvokeBS" partnerLink="BSReference" portType="ns2:BillingSystemBPEL"
+                            operation="process" inputVariable="InvokeBSInputVariable" bpelx:invokeAsDetail="no"/>
+                    <pick name="Pick1">
+                        <onMessage partnerLink="BSReference" variable="BSResponseVariable"
+                                   portType="ns2:BillingSystemBPELCallback" operation="processResponse">
+                            <assign name="Assign1">
+                                <copy>
+                                    <from>$BSResponseVariable.payload/ns2:tostcost</from>
+                                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:totalCost</to>
+                                </copy>
+                                <copy>
+                                    <from>"Completed"</from>
+                                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:orderStatus</to>
+                                </copy>
+                            </assign>
+                        </onMessage>
+                    </pick>
+                </sequence>
+            </scope>
+            <elseif>
+                <documentation>
+                    <![CDATA[INVALID CC]]>
+                </documentation>
+                <condition>$outputVariable.payload/client:ccValidationStatus = "INVALID"</condition>
+                <assign name="AssignInvalidOrder">
+                    <copy>
+                        <from>"Not able to process your order. please provide a valid credit card"</from>
+                        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:orderStatus</to>
+                    </copy>
+                </assign>
+            </elseif>
+        </if>
+        <!-- 
+          Asynchronous callback to the requester. (Note: the callback location and correlation id is transparently handled using WS-addressing.)
+        -->
+        <invoke name="callbackClient" partnerLink="opsbpel_client" portType="client:OPSBPELCallback" operation="processResponse" inputVariable="outputVariable"/>
+    </sequence>
+</process>
